@@ -60,14 +60,15 @@ namespace Caculator
             return expression;
         }
 
-        private static void Caculate(string[] expressionArray)
+        private static int[] Caculate(string[] expressionArray)
         {
-
-            // caculate Ax + Bx
+            // caculate Ax + Bx + C
+            int[] AB = new int[2];
             int A = 0;
             int B = 0;
             for (int i = 0; i < expressionArray.Length; i++)
             {
+                //Caculate C
                 if (!expressionArray[i].Contains("X") &&
                     !expressionArray[i].Contains("+") &&
                     !expressionArray[i].Contains("-") &&
@@ -95,6 +96,7 @@ namespace Caculator
                     }
                 }
 
+                //Caculate A
                 if (expressionArray[i].Contains("X"))
                 {
                     string ax = expressionArray[i];
@@ -113,14 +115,12 @@ namespace Caculator
                                 A -= 1;
                             }
                         }
-
                     }
                     else
                     {
                         //a != 1
                         string a = expressionArray[i].Substring(0, expressionArray[i].Length - 1);
                         int ia = Convert.ToInt32(a);
-                        //A += ia;
                         if (i == 0)
                         {
                             A += ia;
@@ -144,7 +144,9 @@ namespace Caculator
 
             Console.WriteLine("A {0}", A);
             Console.WriteLine("B {0}", B);
-            Console.WriteLine("x = {0}", -B / A);
+            AB[0] = A;
+            AB[1] = B; 
+            return AB;
         }
         public static void Main(string[] args)
         {
@@ -153,42 +155,25 @@ namespace Caculator
                 string expression = ValidateExpression();
                 // split by =, and put right expressions to left
                 string[] expressions = expression.Split('=');
-                if (expressions[1].Trim() == "0")
-                {
-                    //patern AX + B = 0; X = -B/A
-                    //splict left expression by white space 
-                    string[] expressionArray = expressions[0].Trim().Split(' ');
-                    Caculate(expressionArray);
-
-
-                }
-                else // patern ax + b = c
-                {
-                    string rightExpressions = expressions[1].Trim();
-                }
-
-                if (expressions.Length == 1)
-                {
-                    //
-                    string leftExpression = expressions[0];
-                    Console.WriteLine("Pattern right: {0}", leftExpression);
-                }
-                else if (expression.Length == 2)
-                {
-                    string rightExpression = expressions[1];
-                }
-                else
-                {
-                    //worng expression
-                }
-                //Console.WriteLine("Pattern right: {0}", expression);
-                //Console.ReadLine();
-            }
-           
-
-
-
                 
+                //AX + B = CX +D => 
+
+                string[] expressionArray = expressions[0].Trim().Split(' ');
+                int[] value1 = Caculate(expressionArray);
+                             
+                string[] rightExpressions = expressions[1].Trim().Split(' ');
+                int[] value2 = Caculate(rightExpressions);
+                int A = value1[0] - value2[0];
+                int B = value1[1] - value2[1];
+                Console.WriteLine("x =  {0}", -B/A);
+
+
+            }
+
+
+
+
+
         }
     }
 }
