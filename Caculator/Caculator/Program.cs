@@ -60,6 +60,26 @@ namespace Caculator
             return expression;
         }
 
+        //reduce * 
+        public static void ReduceOperations(ref string[] expressions)
+        {
+            //string standardExpression = "";
+            for (int i = 0; i < expressions.Length; i++)
+            {
+                if (expressions[i].Contains("X"))
+                {
+                    if (expressions[i].Contains("*"))
+                    {
+                        expressions[i] = expressions[i].Replace("*", "");
+                    }
+                }
+                // convert number???
+            }
+
+            
+            //return standardExpression;
+        }
+
         private static int[] Caculate(string[] expressionArray)
         {
             // caculate Ax + Bx + C
@@ -96,11 +116,16 @@ namespace Caculator
                     }
                 }
 
-                //Caculate A
+                //Caculate the substring that contains X
                 if (expressionArray[i].Contains("X"))
                 {
                     string ax = expressionArray[i];
-                    if (expressionArray[i].Length == 1)
+                    if (ax.Contains("*"))
+                    {
+                        ax = expressionArray[i].Replace("*", "");
+                    }
+
+                    if (ax.Length == 1)
                     {
                         //a=1
                         if (i == 0)
@@ -119,7 +144,7 @@ namespace Caculator
                     else
                     {
                         //a != 1
-                        string a = expressionArray[i].Substring(0, expressionArray[i].Length - 1);
+                        string a = ax.Substring(0, ax.Length - 1);
                         int ia = Convert.ToInt32(a);
                         if (i == 0)
                         {
@@ -153,16 +178,18 @@ namespace Caculator
             while(true)
             {
                 string expression = ValidateExpression();
-                // split by =, and put right expressions to left
+
+                // split expression by =
                 string[] expressions = expression.Split('=');
                 
                 //AX + B = CX +D => 
-
-                string[] expressionArray = expressions[0].Trim().Split(' ');
-                int[] value1 = Caculate(expressionArray);
+                string[] leftExpressions = expressions[0].Trim().Split(' ');
+                //Convert2StandardEquation();
+                int[] value1 = Caculate(leftExpressions);
                              
                 string[] rightExpressions = expressions[1].Trim().Split(' ');
                 int[] value2 = Caculate(rightExpressions);
+
                 int A = value1[0] - value2[0];
                 int B = value1[1] - value2[1];
                 Console.WriteLine("x =  {0}", -B/A);
