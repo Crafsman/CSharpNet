@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Caculator
 {
@@ -61,7 +62,7 @@ namespace Caculator
         }
 
         //reduce * 
-        public static void ReduceOperations(ref string[] expressions)
+        public static string[] ReduceOperations(string[] expressions)
         {
             //string standardExpression = "";
             for (int i = 0; i < expressions.Length; i++)
@@ -73,11 +74,42 @@ namespace Caculator
                         expressions[i] = expressions[i].Replace("*", "");
                     }
                 }
-                // convert number???
+                else  // convert number???
+                {
+                    if (expressions[i].Contains("*"))
+                    {
+                        int newValue = Convert.ToInt32(expressions[i - 1]) * Convert.ToInt32(expressions[i + 1]);
+                        expressions[i] = expressions[i].Replace("*", newValue.ToString());
+                        expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
+                        expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+
+                    }
+                }              
+               
+            }
+            int lenth = 0;
+            for (int j = 0; j < expressions.Length; j++)
+            {
+                if (!String.IsNullOrEmpty(expressions[j]))
+                {
+                    lenth++;
+                }
             }
 
-            
-            //return standardExpression;
+            string[] standardExpression = new string[lenth];
+
+            int newLenth = 0;
+            for (int j = 0; j < expressions.Length; j++)
+            {
+                if (!String.IsNullOrEmpty(expressions[j]))
+                {
+
+                    standardExpression[newLenth] = expressions[j];
+                    newLenth++;
+                }
+            }
+
+            return standardExpression;
         }
 
         private static int[] Caculate(string[] expressionArray)
@@ -181,14 +213,24 @@ namespace Caculator
 
                 // split expression by =
                 string[] expressions = expression.Split('=');
-                
+
                 //AX + B = CX +D => 
                 string[] leftExpressions = expressions[0].Trim().Split(' ');
-                //Convert2StandardEquation();
-                int[] value1 = Caculate(leftExpressions);
+
+                List<string> openItems = new List<string>();
+                foreach (string arrItem in leftExpressions)
+                {
+                    openItems.Add(arrItem);
+                }
+
+
+                string[] newLeftExpressions =ReduceOperations(leftExpressions);
+                int[] value1 = Caculate(newLeftExpressions);
                              
                 string[] rightExpressions = expressions[1].Trim().Split(' ');
-                int[] value2 = Caculate(rightExpressions);
+                string[] newRightExpressions = ReduceOperations(rightExpressions);
+                int[] value2 = Caculate(newRightExpressions);
+
 
                 int A = value1[0] - value2[0];
                 int B = value1[1] - value2[1];
