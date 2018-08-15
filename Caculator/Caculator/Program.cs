@@ -62,10 +62,10 @@ namespace Caculator
         }
 
         //reduce * 
-        public static string[] ReduceOperations(string[] expressions)
+        public static List<string> ReduceOperations(List<string> expressions)
         {
             //string standardExpression = "";
-            for (int i = 0; i < expressions.Length; i++)
+            for (int i = 0; i < expressions.Count; i++)
             {
                 if (expressions[i].Contains("X"))
                 {
@@ -87,38 +87,26 @@ namespace Caculator
                 }              
                
             }
-            int lenth = 0;
-            for (int j = 0; j < expressions.Length; j++)
+
+            List<string> standardExpression = new List<string>();
+            for (int j = 0; j < expressions.Count; j++)
             {
                 if (!String.IsNullOrEmpty(expressions[j]))
                 {
-                    lenth++;
-                }
-            }
-
-            string[] standardExpression = new string[lenth];
-
-            int newLenth = 0;
-            for (int j = 0; j < expressions.Length; j++)
-            {
-                if (!String.IsNullOrEmpty(expressions[j]))
-                {
-
-                    standardExpression[newLenth] = expressions[j];
-                    newLenth++;
+                    standardExpression.Add(expressions[j]);
                 }
             }
 
             return standardExpression;
         }
 
-        private static int[] Caculate(string[] expressionArray)
+        private static int[] Caculate(List<string> expressionArray)
         {
             // caculate Ax + Bx + C
             int[] AB = new int[2];
             int A = 0;
             int B = 0;
-            for (int i = 0; i < expressionArray.Length; i++)
+            for (int i = 0; i < expressionArray.Count; i++)
             {
                 //Caculate C
                 if (!expressionArray[i].Contains("X") &&
@@ -199,12 +187,15 @@ namespace Caculator
 
             }
 
+#if DEBUG
             Console.WriteLine("A {0}", A);
             Console.WriteLine("B {0}", B);
+#endif
             AB[0] = A;
             AB[1] = B; 
             return AB;
         }
+
         public static void Main(string[] args)
         {
             while(true)
@@ -216,24 +207,23 @@ namespace Caculator
 
                 //AX + B = CX +D => 
                 string[] leftExpressions = expressions[0].Trim().Split(' ');
-
-                List<string> openItems = new List<string>();
-                foreach (string arrItem in leftExpressions)
-                {
-                    openItems.Add(arrItem);
-                }
-
-
-                string[] newLeftExpressions =ReduceOperations(leftExpressions);
+                List<string> leftExpressionsList = new List<string>(leftExpressions);
+                List<string> newLeftExpressions = ReduceOperations(leftExpressionsList);
                 int[] value1 = Caculate(newLeftExpressions);
-                             
+                          
+                
                 string[] rightExpressions = expressions[1].Trim().Split(' ');
-                string[] newRightExpressions = ReduceOperations(rightExpressions);
+                List<string> rightExpressionsList = new List<string>(rightExpressions);
+                List<string> newRightExpressions = ReduceOperations(rightExpressionsList);
                 int[] value2 = Caculate(newRightExpressions);
 
 
                 int A = value1[0] - value2[0];
                 int B = value1[1] - value2[1];
+                if(A == 0)
+                {
+                    Console.WriteLine("Denominator cannot be 0");
+                }
                 Console.WriteLine("x =  {0}", -B/A);
 
 
