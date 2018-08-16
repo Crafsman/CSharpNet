@@ -65,23 +65,18 @@ namespace Caculator
         private static string LinearOrQuatratic(string expression)
         {
             string linearOrQuatratic = "linear";
-            if (expression.Contains("^2"))
-            {                
-                return linearOrQuatratic = "quatratic";
-            }
-            if (expression.Contains(")("))
-            {
-                int index = expression.IndexOf(")(", StringComparison.CurrentCulture);
-                //string [] splitedExpression = expression.Split(')(');
-               // splitedExpression[0].ToLower().Contains("x") && 
-
-            }
 
 
-            // ... This ignores the case of the "TE" characters.
-            if (Regex.IsMatch(expression, @"\(([0-9]+)x.+?([0-9]+)\)", RegexOptions.IgnoreCase))
+            if (Regex.IsMatch(expression, @"((\s)*\((.*(([0-9]*)x).*)+\)(\s)*){2}|(\^2)", RegexOptions.IgnoreCase))
             {
                 Console.WriteLine(true);
+                return linearOrQuatratic = "quatratic";
+                
+            }
+
+            if (expression.Contains("^2"))
+            {
+                return linearOrQuatratic = "quatratic";
             }
             return linearOrQuatratic;
         }
