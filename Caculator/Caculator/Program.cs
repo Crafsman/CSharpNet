@@ -62,7 +62,7 @@ namespace Caculator
         }
 
         //reduce * 
-        public static List<string> ReduceOperations(List<string> expressions)
+        public static List<string> StandardizeExpression(List<string> expressions)
         {
             //string standardExpression = "";
             for (int i = 0; i < expressions.Count; i++)
@@ -78,7 +78,7 @@ namespace Caculator
                 {
                     if (expressions[i].Contains("*"))
                     {
-                        int newValue = Convert.ToInt32(expressions[i - 1]) * Convert.ToInt32(expressions[i + 1]);
+                        double newValue = Convert.ToDouble(expressions[i - 1]) * Convert.ToDouble(expressions[i + 1]);
                         expressions[i] = expressions[i].Replace("*", newValue.ToString());
                         expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
                         expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
@@ -87,13 +87,25 @@ namespace Caculator
                     else if(expressions[i].Contains("(") && expressions[i].Contains(")"))
                     {
                         int index = expressions[i].IndexOf('(');
-                        int beforeNumber = Convert.ToInt32(expressions[i].Substring(index - 1, 1));
-                        int behindNumber = Convert.ToInt32(expressions[i].Substring(index + 1, 1));
+                        double beforeNumber = Convert.ToDouble(expressions[i].Substring(index - 1, 1));
+                        double behindNumber = Convert.ToDouble(expressions[i].Substring(index + 1, 1));
                         expressions[i] = (beforeNumber * behindNumber).ToString();
                     }
                 }              
                
             }
+            // handle '/'
+            for (int i = 0; i < expressions.Count; i++)
+            {
+                if (expressions[i].Contains("/"))
+                {
+                    double Denominator = 1 / Convert.ToDouble(expressions[i + 1]);
+                    expressions[i] = expressions[i].Replace(expressions[i], "");
+                    expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+                    expressions[i - 1] = Denominator.ToString() + expressions[i - 1];
+                }
+            }
+
 
 
             List<string> standardExpression = new List<string>();
@@ -112,8 +124,8 @@ namespace Caculator
         {
             // caculate Ax + Bx + C
             double[] AB = new double[2];
-            int A = 0;
-            int B = 0;
+            double A = 0;
+            double B = 0;
             for (int i = 0; i < expressionArray.Count; i++)
             {
                 //Caculate C
@@ -125,7 +137,7 @@ namespace Caculator
                     !expressionArray[i].Contains("%") &&
                     !expressionArray[i].Contains("^"))
                 {
-                    int number = Convert.ToInt32(expressionArray[i]);
+                    double number = Convert.ToDouble(expressionArray[i]);
                     if (i == 0)
                     {
                         B += number;
@@ -152,7 +164,7 @@ namespace Caculator
                     {
                         ax = expressionArray[i].Replace("*", "");
                     }
-
+                    // 
                     if (ax.Length == 1)
                     {
                         //a=1
@@ -168,12 +180,12 @@ namespace Caculator
                                 A -= 1;
                             }
                         }
-                    }
+                    }// ax not at the begining
                     else
                     {
-                        //a != 1
+                        //extract a,
                         string a = ax.Substring(0, ax.Length - 1);
-                        int ia = Convert.ToInt32(a);
+                        double ia = Convert.ToDouble(a);
                         if (i == 0)
                         {
                             A += ia;
@@ -214,18 +226,19 @@ namespace Caculator
                 string[] expressions = expression.Split('=');
 
                 //AX + B = CX +D => 
+                // Left
                 string[] leftExpressions = expressions[0].Trim().Split(' ');
                 List<string> leftExpressionsList = new List<string>(leftExpressions);
-                List<string> newLeftExpressions = ReduceOperations(leftExpressionsList);
+                List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
                 double[] value1 = Caculate(newLeftExpressions);
                           
-                
+                //Right
                 string[] rightExpressions = expressions[1].Trim().Split(' ');
                 List<string> rightExpressionsList = new List<string>(rightExpressions);
-                List<string> newRightExpressions = ReduceOperations(rightExpressionsList);
+                List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
                 double[] value2 = Caculate(newRightExpressions);
 
-
+                // X value
                 double A = value1[0] - value2[0];
                 double B = value1[1] - value2[1];
                 if(A == 0)
@@ -233,7 +246,6 @@ namespace Caculator
                     Console.WriteLine("Denominator cannot be 0");
                 }
                 Console.WriteLine("x =  {0}", -B/A);
-
 
             }
 
