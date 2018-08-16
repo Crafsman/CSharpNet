@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Caculator
 {
@@ -42,7 +43,7 @@ namespace Caculator
 
                 if (index != 0)
                 {
-                    Console.WriteLine("Please follow this pattern: \"calc aX + b = c\"");
+                    Console.WriteLine("Please begin with \"calc \"");
                     continue;
                 }
                 if (!expression.ToLower().Contains("x"))
@@ -61,7 +62,30 @@ namespace Caculator
             return expression;
         }
 
-        //reduce * 
+        private static string LinearOrQuatratic(string expression)
+        {
+            string linearOrQuatratic = "linear";
+            if (expression.Contains("^2"))
+            {                
+                return linearOrQuatratic = "quatratic";
+            }
+            if (expression.Contains(")("))
+            {
+                int index = expression.IndexOf(")(", StringComparison.CurrentCulture);
+                //string [] splitedExpression = expression.Split(')(');
+               // splitedExpression[0].ToLower().Contains("x") && 
+
+            }
+
+
+            // ... This ignores the case of the "TE" characters.
+            if (Regex.IsMatch(expression, @"\(([0-9]+)x.+?([0-9]+)\)", RegexOptions.IgnoreCase))
+            {
+                Console.WriteLine(true);
+            }
+            return linearOrQuatratic;
+        }
+         
         public static List<string> StandardizeExpression(List<string> expressions)
         {
             //string standardExpression = "";
@@ -221,36 +245,44 @@ namespace Caculator
             while(true)
             {
                 string expression = ValidateExpression();
-
+                LinearOrQuatratic(expression);
                 // split expression by =
                 string[] expressions = expression.Split('=');
 
-                //AX + B = CX +D => 
-                // Left
-                string[] leftExpressions = expressions[0].Trim().Split(' ');
-                List<string> leftExpressionsList = new List<string>(leftExpressions);
-                List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
-                double[] value1 = Caculate(newLeftExpressions);
-                          
-                //Right
-                string[] rightExpressions = expressions[1].Trim().Split(' ');
-                List<string> rightExpressionsList = new List<string>(rightExpressions);
-                List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
-                double[] value2 = Caculate(newRightExpressions);
+                /*
+                                //AX + B = CX +D => 
+                                // Left
+                                string[] leftExpressions = expressions[0].Trim().Split(' ');
+                                List<string> leftExpressionsList = new List<string>(leftExpressions);
+                                List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
+                                double[] value1 = Caculate(newLeftExpressions);
 
-                // X value
-                double A = value1[0] - value2[0];
-                double B = value1[1] - value2[1];
-                if(A == 0)
-                {
-                    Console.WriteLine("Denominator cannot be 0");
-                }
-                Console.WriteLine("x =  {0}", -B/A);
+                                //Right
+                                string[] rightExpressions = expressions[1].Trim().Split(' ');
+                                List<string> rightExpressionsList = new List<string>(rightExpressions);
+                                List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
+                                double[] value2 = Caculate(newRightExpressions);
+
+                                // X value
+                                double A = value1[0] - value2[0];
+                                double B = value1[1] - value2[1];
+                                if(A == 0)
+                                {
+                                    Console.WriteLine("Denominator cannot be 0");
+                                }
+                                Console.WriteLine("x =  {0}", -B/A);
+
+                */
 
             }
 
 
-
+            /*
+             ax^2 + bx + c = 0
+             int d = b * b - ( 4 * a * c)
+             int x1 = ((b * -1) + sqrt(d)) / (2 * a);
+             int x2 = ((b * -1) - sqrt(d)) /  (2 * a);
+             */
 
 
         }
