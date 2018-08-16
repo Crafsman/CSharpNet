@@ -45,7 +45,7 @@ namespace Caculator
                     Console.WriteLine("Please follow this pattern: \"calc aX + b = c\"");
                     continue;
                 }
-                if (!expression.Contains("X"))
+                if (!expression.ToLower().Contains("x"))
                 {
                     Console.WriteLine("Please input X as equation variable");
                     continue;
@@ -67,7 +67,7 @@ namespace Caculator
             //string standardExpression = "";
             for (int i = 0; i < expressions.Count; i++)
             {
-                if (expressions[i].Contains("X"))
+                if (expressions[i].ToLower().Contains("x"))
                 {
                     if (expressions[i].Contains("*"))
                     {
@@ -83,10 +83,18 @@ namespace Caculator
                         expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
                         expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
 
+                    } //Parse patern 5(2) + 5X = 15
+                    else if(expressions[i].Contains("(") && expressions[i].Contains(")"))
+                    {
+                        int index = expressions[i].IndexOf('(');
+                        int beforeNumber = Convert.ToInt32(expressions[i].Substring(index - 1, 1));
+                        int behindNumber = Convert.ToInt32(expressions[i].Substring(index + 1, 1));
+                        expressions[i] = (beforeNumber * behindNumber).ToString();
                     }
                 }              
                
             }
+
 
             List<string> standardExpression = new List<string>();
             for (int j = 0; j < expressions.Count; j++)
@@ -100,16 +108,16 @@ namespace Caculator
             return standardExpression;
         }
 
-        private static int[] Caculate(List<string> expressionArray)
+        private static double[] Caculate(List<string> expressionArray)
         {
             // caculate Ax + Bx + C
-            int[] AB = new int[2];
+            double[] AB = new double[2];
             int A = 0;
             int B = 0;
             for (int i = 0; i < expressionArray.Count; i++)
             {
                 //Caculate C
-                if (!expressionArray[i].Contains("X") &&
+                if (!expressionArray[i].ToLower().Contains("x") &&
                     !expressionArray[i].Contains("+") &&
                     !expressionArray[i].Contains("-") &&
                     !expressionArray[i].Contains("*") &&
@@ -137,7 +145,7 @@ namespace Caculator
                 }
 
                 //Caculate the substring that contains X
-                if (expressionArray[i].Contains("X"))
+                if (expressionArray[i].ToLower().Contains("x"))
                 {
                     string ax = expressionArray[i];
                     if (ax.Contains("*"))
@@ -209,17 +217,17 @@ namespace Caculator
                 string[] leftExpressions = expressions[0].Trim().Split(' ');
                 List<string> leftExpressionsList = new List<string>(leftExpressions);
                 List<string> newLeftExpressions = ReduceOperations(leftExpressionsList);
-                int[] value1 = Caculate(newLeftExpressions);
+                double[] value1 = Caculate(newLeftExpressions);
                           
                 
                 string[] rightExpressions = expressions[1].Trim().Split(' ');
                 List<string> rightExpressionsList = new List<string>(rightExpressions);
                 List<string> newRightExpressions = ReduceOperations(rightExpressionsList);
-                int[] value2 = Caculate(newRightExpressions);
+                double[] value2 = Caculate(newRightExpressions);
 
 
-                int A = value1[0] - value2[0];
-                int B = value1[1] - value2[1];
+                double A = value1[0] - value2[0];
+                double B = value1[1] - value2[1];
                 if(A == 0)
                 {
                     Console.WriteLine("Denominator cannot be 0");
