@@ -66,18 +66,13 @@ namespace Caculator
         {
             string linearOrQuatratic = "linear";
 
-
             if (Regex.IsMatch(expression, @"((\s)*\((.*(([0-9]*)x).*)+\)(\s)*){2}|(\^2)", RegexOptions.IgnoreCase))
             {
-                Console.WriteLine(true);
-                return linearOrQuatratic = "quatratic";
-                
+                 linearOrQuatratic = "quatratic";                
             }
-
-            if (expression.Contains("^2"))
-            {
-                return linearOrQuatratic = "quatratic";
-            }
+#if DEBUG
+            Console.WriteLine("{0}", linearOrQuatratic);
+#endif
             return linearOrQuatratic;
         }
          
