@@ -112,14 +112,57 @@ namespace Caculator
                 string temp = matchA.Value;
                 Console.WriteLine(temp);
 
+                string replaceString = "";
                 double coefficent = MatchCoefficent(temp);
+                double xEfficent = 1;
+                double number = 0;
 
                 //????????????????????????????????????????????? (x-1)
-                Match matchInnerBracketExpression = Regex.Match(temp, @"(\(((\d*)x)+(\s)*(-|\+)(\s)*\d*\))", RegexOptions.IgnoreCase);
-                if (matchInnerBracketExpression.Success)
-                {
-                    Console.WriteLine(matchInnerBracketExpression.Value);
+                Match matchInnerBracketExpression = Regex.Match(temp, @"((\d*)x)+(\s)*(-|\+)(\s)*\d*", RegexOptions.IgnoreCase);
+                if (matchInnerBracketExpression.Success)//x-1
+                {               
+                    string innerBracketExpression = matchInnerBracketExpression.Value;
+                    Console.WriteLine(innerBracketExpression);
+                    int index = innerBracketExpression.IndexOf("x", StringComparison.CurrentCultureIgnoreCase);
+                    if(index == 0)
+                    {
+                        xEfficent = 1;
+                    }else{
+                        xEfficent = Convert.ToDouble(innerBracketExpression.Substring(0, index));
+
+                    }
+                    xEfficent *= coefficent;
+
+                    replaceString += xEfficent.ToString() + "x";
+
+                    Match matchNumberExpression = Regex.Match(innerBracketExpression, @"(-|\+)(\s)*\d+", RegexOptions.IgnoreCase);
+                    if(matchNumberExpression.Success)
+                    {
+                        Match matchNumber = Regex.Match(matchNumberExpression.Value, @"\d+", RegexOptions.IgnoreCase);
+                        if (matchNumber.Success)
+                        {
+                            number = Convert.ToDouble(matchNumber.Value);
+                             
+                            Console.WriteLine(matchNumber.Value);
+                        }
+                    }
+                    number *= coefficent;
+
+                    if(innerBracketExpression.Contains("-"))
+                    {
+                        replaceString += " - " + number.ToString();
+                    }
+                    if (innerBracketExpression.Contains("+"))
+                    {
+                        replaceString += " + " + number.ToString();
+                    }
+
+                    Console.WriteLine(replaceString);
                 }
+
+                currentExpression = currentExpression.Replace(temp, replaceString);
+                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
+
             }
             matchA = matchA.NextMatch();
             while (matchA.Success)
@@ -128,7 +171,58 @@ namespace Caculator
                 string temp = matchA.Value;
                 Console.WriteLine(temp);
 
-                MatchCoefficent(temp);
+                string replaceString = "";
+                double coefficent = MatchCoefficent(temp);
+                double xEfficent = 1;
+                double number = 0;
+
+                //????????????????????????????????????????????? (x-1)
+                Match matchInnerBracketExpression = Regex.Match(temp, @"((\d*)x)+(\s)*(-|\+)(\s)*\d*", RegexOptions.IgnoreCase);
+                if (matchInnerBracketExpression.Success)//x-1
+                {
+                    string innerBracketExpression = matchInnerBracketExpression.Value;
+                    Console.WriteLine(innerBracketExpression);
+                    int index = innerBracketExpression.IndexOf("x", StringComparison.CurrentCultureIgnoreCase);
+                    if (index == 0)
+                    {
+                        xEfficent = 1;
+                    }
+                    else
+                    {
+                        xEfficent = Convert.ToDouble(innerBracketExpression.Substring(0, index));
+
+                    }
+                    xEfficent *= coefficent;
+
+                    replaceString += xEfficent.ToString() + "x";
+
+                    Match matchNumberExpression = Regex.Match(innerBracketExpression, @"(-|\+)(\s)*\d+", RegexOptions.IgnoreCase);
+                    if (matchNumberExpression.Success)
+                    {
+                        Match matchNumber = Regex.Match(matchNumberExpression.Value, @"\d+", RegexOptions.IgnoreCase);
+                        if (matchNumber.Success)
+                        {
+                            number = Convert.ToDouble(matchNumber.Value);
+
+                            Console.WriteLine(matchNumber.Value);
+                        }
+                    }
+                    number *= coefficent;
+
+                    if (innerBracketExpression.Contains("-"))
+                    {
+                        replaceString += " - " + number.ToString();
+                    }
+                    if (innerBracketExpression.Contains("+"))
+                    {
+                        replaceString += " + " + number.ToString();
+                    }
+
+                    Console.WriteLine(replaceString);
+                }
+                currentExpression = currentExpression.Replace(temp, replaceString);
+                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
+
 
                 matchA = matchA.NextMatch();
             }
@@ -490,6 +584,8 @@ namespace Caculator
             {
                 string expression = ValidateExpression();
                 expression = ProcessBrackets(expression);
+
+
 
 
                 string linearOrQuatratic = LinearOrQuatratic(expression);
