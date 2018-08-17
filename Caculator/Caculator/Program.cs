@@ -77,14 +77,76 @@ namespace Caculator
         }
 
         //this pattern (X-2) (X-3) = 0
-        private static bool IsSpecialQuatratic(string expression)
+        private static string ProcessBrackets(string expression)
         {
-            bool isSpecialQuatratic = false;
+            string currentExpression = expression;
+
+            #region match  (X-2) (X-3) = 0
+            #endregion
             if (Regex.IsMatch(expression, @"((\s)*\((.*(([0-9]*)x).*)+\)(\s)*){2}=(\s)*0", RegexOptions.IgnoreCase))
             {
-                isSpecialQuatratic = true;
             }
-             return isSpecialQuatratic;
+
+            #region match  4(4X) + 2 (X) = 72
+            Match match = Regex.Match(expression, @"((\d)*(\s)*\(((\d*)x)+\))", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                string temp = match.Value;
+                Console.WriteLine(match.Value);
+
+                double coefficent = 1;
+                Match currentMath = Regex.Match(temp, @"(\d)+", RegexOptions.IgnoreCase);
+                if (currentMath.Success)
+                {
+                    Console.WriteLine(currentMath.Value);
+                    coefficent *= Convert.ToDouble(currentMath.Value);
+                }
+                currentMath = currentMath.NextMatch();
+                while (currentMath.Success)
+                {
+                    Console.WriteLine(currentMath.Value);
+                    coefficent *= Convert.ToDouble(currentMath.Value);
+                    currentMath = currentMath.NextMatch();
+                }
+                Console.WriteLine("current coefficent is: {0}", coefficent);
+                currentExpression = currentExpression.Replace(temp, coefficent.ToString() + "x");
+                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
+
+            }
+
+            match = match.NextMatch();
+            while (match.Success)
+            {
+                string temp = match.Value;
+                Console.WriteLine(match.Value);
+
+                double coefficent = 1;
+                Match currentMath = Regex.Match(temp, @"(\d)+", RegexOptions.IgnoreCase);
+                if (currentMath.Success)
+                {
+                    Console.WriteLine(currentMath.Value);
+                    coefficent *= Convert.ToDouble(currentMath.Value);
+                }
+                currentMath = currentMath.NextMatch();
+                while (currentMath.Success)
+                {
+                    Console.WriteLine(currentMath.Value);
+                    coefficent *= Convert.ToDouble(currentMath.Value);
+                    currentMath = currentMath.NextMatch();
+                }
+                Console.WriteLine("current coefficent is: {0}", coefficent);
+                currentExpression = currentExpression.Replace(temp, coefficent.ToString() + "x");
+                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
+
+                match = match.NextMatch();
+
+            }
+            #endregion
+
+
+
+
+            return currentExpression;
 
         }
          
@@ -380,75 +442,60 @@ namespace Caculator
             while(true)
             {
                 string expression = ValidateExpression();
-               
-                if (IsSpecialQuatratic(expression))
+                expression = ProcessBrackets(expression);
+
+
+                string linearOrQuatratic = LinearOrQuatratic(expression);
+                // split expression by =
+                string[] expressions = expression.Split('=');
+
+                // Left
+                string[] leftExpressions = expressions[0].Trim().Split(' ');
+                List<string> leftExpressionsList = new List<string>(leftExpressions);
+                List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
+
+                //Right
+                string[] rightExpressions = expressions[1].Trim().Split(' ');
+                List<string> rightExpressionsList = new List<string>(rightExpressions);
+                List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
+
+                if (linearOrQuatratic == "linear")
                 {
-                    Console.WriteLine("x =  {0}", 1);
-                    Console.WriteLine("x =  {0}", 2);
+                    double[] value1 = Caculate(newLeftExpressions);
+                    double[] value2 = Caculate(newRightExpressions);
+
+                    // X value
+                    double A = value1[0] - value2[0];
+                    double B = value1[1] - value2[1];
+                    if (A == 0)
+                    {
+                        Console.WriteLine("Denominator cannot be 0");
+                    }
+                    Console.WriteLine("x =  {0}", -B / A);
                 }
-                else
+                else //ax ^ 2 + bx + c = 0
                 {
+                    double[] value1 = CaculateQuatratic(newLeftExpressions);
+                    double[] value2 = CaculateQuatratic(newRightExpressions);
 
-                    string linearOrQuatratic = LinearOrQuatratic(expression);
-                    // split expression by =
-                    string[] expressions = expression.Split('=');
-
-                    // Left
-                    string[] leftExpressions = expressions[0].Trim().Split(' ');
-                    List<string> leftExpressionsList = new List<string>(leftExpressions);
-                    List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
-
-                    //Right
-                    string[] rightExpressions = expressions[1].Trim().Split(' ');
-                    List<string> rightExpressionsList = new List<string>(rightExpressions);
-                    List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
-
-                    if (linearOrQuatratic == "linear")
+                    // X value
+                    double A = value1[0] - value2[0];
+                    double B = value1[1] - value2[1];
+                    double C = value1[2] - value2[2];
+                    if (A == 0)
                     {
-                        //AX + B = CX +D => 
-
-                        double[] value1 = Caculate(newLeftExpressions);
-
-                        double[] value2 = Caculate(newRightExpressions);
-
-                        // X value
-                        double A = value1[0] - value2[0];
-                        double B = value1[1] - value2[1];
-                        if (A == 0)
-                        {
-                            Console.WriteLine("Denominator cannot be 0");
-                        }
-                        Console.WriteLine("x =  {0}", -B / A);
+                        Console.WriteLine("Denominator cannot be 0");
                     }
-                    else //ax ^ 2 + bx + c = 0
-                    {
-                        double[] value1 = CaculateQuatratic(newLeftExpressions);
 
-                        double[] value2 = CaculateQuatratic(newRightExpressions);
+                    double d = B * B - (4 * A * C);
+                    double x1 = ((B * -1) + Math.Sqrt(d)) / (2 * A);
+                    double x2 = ((B * -1) - Math.Sqrt(d)) / (2 * A);
+                    Console.WriteLine("x1 =  {0}", x1);
+                    Console.WriteLine("x2 =  {0}", x2);
 
-                        // X value
-                        double A = value1[0] - value2[0];
-                        double B = value1[1] - value2[1];
-                        double C = value1[2] - value2[2];
-                        if (A == 0)
-                        {
-                            Console.WriteLine("Denominator cannot be 0");
-                        }
-
-                        double d = B * B - (4 * A * C);
-                        double x1 = ((B * -1) + Math.Sqrt(d)) / (2 * A);
-                        double x2 = ((B * -1) - Math.Sqrt(d)) / (2 * A);
-                        Console.WriteLine("x1 =  {0}", x1);
-                        Console.WriteLine("x2 =  {0}", x2);
-
-                    }
                 }
-             
 
-
-          
-
-
+                  
                 
 
             }
