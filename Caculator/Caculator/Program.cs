@@ -75,37 +75,63 @@ namespace Caculator
 #endif
             return linearOrQuatratic;
         }
+
+        //this pattern (X-2) (X-3) = 0
+        private static bool IsSpecialQuatratic(string expression)
+        {
+            bool isSpecialQuatratic = false;
+            if (Regex.IsMatch(expression, @"((\s)*\((.*(([0-9]*)x).*)+\)(\s)*){2}=(\s)*0", RegexOptions.IgnoreCase))
+            {
+                isSpecialQuatratic = true;
+            }
+             return isSpecialQuatratic;
+
+        }
          
+        // Change A*X => AX; change 5 * 2 =>10;      AX + b
         public static List<string> StandardizeExpression(List<string> expressions)
         {
             //string standardExpression = "";
             for (int i = 0; i < expressions.Count; i++)
             {
-                if (expressions[i].ToLower().Contains("x"))
+                if (!expressions[i].ToLower().Contains("x^2"))
                 {
-                    if (expressions[i].Contains("*"))
+                    if (expressions[i].ToLower().Contains("x"))
                     {
-                        expressions[i] = expressions[i].Replace("*", "");
+                        if (expressions[i].Contains("*"))
+                        {
+                            expressions[i] = expressions[i].Replace("*", "");
+                        }
+                    }
+                    else  // convert number
+                    {
+                        // Parse 6 * 2 => 12
+                        if (expressions[i].Contains("*") && !expressions[i + 1].ToLower().Contains("x"))
+                        {
+                            double newValue = Convert.ToDouble(expressions[i - 1]) * Convert.ToDouble(expressions[i + 1]);
+                            expressions[i] = expressions[i].Replace("*", newValue.ToString());
+                            expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
+                            expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+
+                        }
+                        //Parse patern 7 * x => 7x "" ""
+                        else if (expressions[i].Contains("*") && expressions[i + 1].ToLower().Contains("x"))
+                        {
+                            expressions[i - 1] = expressions[i - 1] + "x";
+                            expressions[i] = expressions[i].Replace("*", "");
+                            expressions[i+ 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+                        }
+                        //Parse patern 5(2) + 5X = 15
+                        else if (expressions[i].Contains("(") && expressions[i].Contains(")"))
+                        {
+                            int index = expressions[i].IndexOf('(');
+                            double beforeNumber = Convert.ToDouble(expressions[i].Substring(index - 1, 1));
+                            double behindNumber = Convert.ToDouble(expressions[i].Substring(index + 1, 1));
+                            expressions[i] = (beforeNumber * behindNumber).ToString();
+                        }
                     }
                 }
-                else  // convert number???
-                {
-                    if (expressions[i].Contains("*"))
-                    {
-                        double newValue = Convert.ToDouble(expressions[i - 1]) * Convert.ToDouble(expressions[i + 1]);
-                        expressions[i] = expressions[i].Replace("*", newValue.ToString());
-                        expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
-                        expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
-
-                    } //Parse patern 5(2) + 5X = 15
-                    else if(expressions[i].Contains("(") && expressions[i].Contains(")"))
-                    {
-                        int index = expressions[i].IndexOf('(');
-                        double beforeNumber = Convert.ToDouble(expressions[i].Substring(index - 1, 1));
-                        double behindNumber = Convert.ToDouble(expressions[i].Substring(index + 1, 1));
-                        expressions[i] = (beforeNumber * behindNumber).ToString();
-                    }
-                }              
+             
                
             }
             // handle '/'
@@ -121,6 +147,31 @@ namespace Caculator
             }
 
 
+            //get rid of "" in expressions
+            List<string> standardExpression = new List<string>();
+            for (int j = 0; j < expressions.Count; j++)
+            {
+                if (!String.IsNullOrEmpty(expressions[j]))
+                {
+                    standardExpression.Add(expressions[j]);
+                }
+            }
+
+            return standardExpression;
+        }
+
+        public static List<string> StandardizeQuatraticExpression(List<string> expressions)
+        {
+            for (int i = 0; i < expressions.Count; i++)
+            {
+                if (!expressions[i].ToLower().Contains("x^2"))
+                {
+                    if (expressions[i].Contains("*"))
+                    {
+                        expressions[i] = expressions[i].Replace("*", "");
+                    }
+                }
+            }
 
             List<string> standardExpression = new List<string>();
             for (int j = 0; j < expressions.Count; j++)
@@ -132,6 +183,100 @@ namespace Caculator
             }
 
             return standardExpression;
+        }
+
+        private static double[] CaculateQuatratic(List<string> expressionArray)
+        {
+            //ax^2 + bx + c = 0
+            double[] ABC = new double[3];
+            double a = 0;
+            double b = 0;
+            double c = 0;
+            for (int i = 0; i < expressionArray.Count; i++)
+            {
+                // Caculate a
+                if(expressionArray[i].ToLower().Contains("x^2"))
+                {
+                    double ia = 0;
+                    int index = expressionArray[i].IndexOf("x^2");
+                    if(index == 0 )
+                    {
+                        ia = 1;
+                    }
+                    else
+                    {
+                        ia = Convert.ToDouble(expressionArray[i].Substring(0, index));
+                    }
+                    
+                    if((i >= 1) && expressionArray[i-1].Contains("-"))
+                    {
+                        a -= ia;
+                    }
+                    else
+                    {
+                        a += ia;
+                    }
+                    
+                }
+                // Calc b, parse b1X + b2X - b3X ; b = (b1 + b2 - b3)
+                if (expressionArray[i].ToLower().Contains("x") && !expressionArray[i].ToLower().Contains("x^2"))
+                {
+                    double ib = 0;
+                    int index = expressionArray[i].IndexOf("x");
+                    if (index == 0)
+                    {
+                        ib = 1;
+                    }
+                    else
+                    {
+                        ib = Convert.ToDouble(expressionArray[i].Substring(0, index));
+                    }
+
+                    if ((i >= 1) && expressionArray[i - 1].Contains("-"))
+                    {
+                        b -= ib;
+                    }
+                    else
+                    {
+                        b += ib;
+                    }
+
+                }
+                //Caculate C
+                if (!expressionArray[i].ToLower().Contains("x") &&
+                    !expressionArray[i].Contains("+") &&
+                    !expressionArray[i].Contains("-") &&
+                    !expressionArray[i].Contains("*") &&
+                    !expressionArray[i].Contains("/") &&
+                    !expressionArray[i].Contains("%") &&
+                    !expressionArray[i].Contains("^"))
+                {
+                    double ic = Convert.ToDouble(expressionArray[i]);
+                    if (i == 0)
+                    {
+                        c += ic;
+                    }
+                    else
+                    {
+                        string opera = expressionArray[i - 1];
+                        if (opera == "-")
+                        {
+                            c -= ic;
+                        }
+                        else if (opera == "+")
+                        {
+                            c += ic;
+                        }
+                    }
+                }
+
+
+            }
+            ABC[0] = a;
+            ABC[1] = b;
+            ABC[2] = c;
+            return ABC;
+
         }
 
         private static double[] Caculate(List<string> expressionArray)
@@ -174,7 +319,7 @@ namespace Caculator
                 if (expressionArray[i].ToLower().Contains("x"))
                 {
                     string ax = expressionArray[i];
-                    if (ax.Contains("*"))
+                    if (ax.Contains("*")) //This will be deleted later, because it has been process in standarlized function
                     {
                         ax = expressionArray[i].Replace("*", "");
                     }
@@ -235,34 +380,76 @@ namespace Caculator
             while(true)
             {
                 string expression = ValidateExpression();
-                LinearOrQuatratic(expression);
-                // split expression by =
-                string[] expressions = expression.Split('=');
+               
+                if (IsSpecialQuatratic(expression))
+                {
+                    Console.WriteLine("x =  {0}", 1);
+                    Console.WriteLine("x =  {0}", 2);
+                }
+                else
+                {
 
-                /*
-                                //AX + B = CX +D => 
-                                // Left
-                                string[] leftExpressions = expressions[0].Trim().Split(' ');
-                                List<string> leftExpressionsList = new List<string>(leftExpressions);
-                                List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
-                                double[] value1 = Caculate(newLeftExpressions);
+                    string linearOrQuatratic = LinearOrQuatratic(expression);
+                    // split expression by =
+                    string[] expressions = expression.Split('=');
 
-                                //Right
-                                string[] rightExpressions = expressions[1].Trim().Split(' ');
-                                List<string> rightExpressionsList = new List<string>(rightExpressions);
-                                List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
-                                double[] value2 = Caculate(newRightExpressions);
+                    // Left
+                    string[] leftExpressions = expressions[0].Trim().Split(' ');
+                    List<string> leftExpressionsList = new List<string>(leftExpressions);
+                    List<string> newLeftExpressions = StandardizeExpression(leftExpressionsList);
 
-                                // X value
-                                double A = value1[0] - value2[0];
-                                double B = value1[1] - value2[1];
-                                if(A == 0)
-                                {
-                                    Console.WriteLine("Denominator cannot be 0");
-                                }
-                                Console.WriteLine("x =  {0}", -B/A);
+                    //Right
+                    string[] rightExpressions = expressions[1].Trim().Split(' ');
+                    List<string> rightExpressionsList = new List<string>(rightExpressions);
+                    List<string> newRightExpressions = StandardizeExpression(rightExpressionsList);
 
-                */
+                    if (linearOrQuatratic == "linear")
+                    {
+                        //AX + B = CX +D => 
+
+                        double[] value1 = Caculate(newLeftExpressions);
+
+                        double[] value2 = Caculate(newRightExpressions);
+
+                        // X value
+                        double A = value1[0] - value2[0];
+                        double B = value1[1] - value2[1];
+                        if (A == 0)
+                        {
+                            Console.WriteLine("Denominator cannot be 0");
+                        }
+                        Console.WriteLine("x =  {0}", -B / A);
+                    }
+                    else //ax ^ 2 + bx + c = 0
+                    {
+                        double[] value1 = CaculateQuatratic(newLeftExpressions);
+
+                        double[] value2 = CaculateQuatratic(newRightExpressions);
+
+                        // X value
+                        double A = value1[0] - value2[0];
+                        double B = value1[1] - value2[1];
+                        double C = value1[2] - value2[2];
+                        if (A == 0)
+                        {
+                            Console.WriteLine("Denominator cannot be 0");
+                        }
+
+                        double d = B * B - (4 * A * C);
+                        double x1 = ((B * -1) + Math.Sqrt(d)) / (2 * A);
+                        double x2 = ((B * -1) - Math.Sqrt(d)) / (2 * A);
+                        Console.WriteLine("x1 =  {0}", x1);
+                        Console.WriteLine("x2 =  {0}", x2);
+
+                    }
+                }
+             
+
+
+          
+
+
+                
 
             }
 
