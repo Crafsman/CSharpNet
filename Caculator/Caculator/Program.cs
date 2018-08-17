@@ -6,28 +6,6 @@ namespace Caculator
 {
     class MainClass
     {
-        string[] opers = new string[] { "+", "-", "/", "*", "%", "^" };  
-        private enum Operation
-        {
-            Unknown,
-
-            Addition,
-
-            Subtraction,
-
-            Multiplication,
-
-            Division,
-
-            Exponentiation,
-
-            Modulo
-        };
-
-        public static void Linear()
-        {
-            //x=-b/a
-        }
 
         //Validate expression, if the expression is correct, remove "cal ", and
         //return the right expression
@@ -161,7 +139,10 @@ namespace Caculator
                 }
 
                 currentExpression = currentExpression.Replace(temp, replaceString);
+#if DEBUG
                 Console.WriteLine("currentExpression change to: {0} ", currentExpression);
+#endif
+
 
             }
             matchA = matchA.NextMatch();
@@ -221,9 +202,9 @@ namespace Caculator
                     Console.WriteLine(replaceString);
                 }
                 currentExpression = currentExpression.Replace(temp, replaceString);
+#if DEBUG
                 Console.WriteLine("currentExpression change to: {0} ", currentExpression);
-
-
+#endif
                 matchA = matchA.NextMatch();
             }
             #endregion
@@ -233,25 +214,8 @@ namespace Caculator
             if (match.Success)
             {
                 string temp = match.Value;
-                Console.WriteLine(temp);
-
-                double coefficent = 1;
-                Match currentMath = Regex.Match(temp, @"(\d)+", RegexOptions.IgnoreCase);
-                if (currentMath.Success)
-                {
-                    Console.WriteLine(currentMath.Value);
-                    coefficent *= Convert.ToDouble(currentMath.Value);
-                }
-                currentMath = currentMath.NextMatch();
-                while (currentMath.Success)
-                {
-                    Console.WriteLine(currentMath.Value);
-                    coefficent *= Convert.ToDouble(currentMath.Value);
-                    currentMath = currentMath.NextMatch();
-                }
-                Console.WriteLine("current coefficent is: {0}", coefficent);
+                double coefficent = CaculateCoefficent(temp);
                 currentExpression = currentExpression.Replace(temp, coefficent.ToString() + "x");
-                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
 
             }
 
@@ -259,38 +223,37 @@ namespace Caculator
             while (match.Success)
             {
                 string temp = match.Value;
-                Console.WriteLine(temp);
-
-                double coefficent = 1;
-                Match currentMath = Regex.Match(temp, @"(\d)+", RegexOptions.IgnoreCase);
-                if (currentMath.Success)
-                {
-                    Console.WriteLine(currentMath.Value);
-                    coefficent *= Convert.ToDouble(currentMath.Value);
-                }
-                currentMath = currentMath.NextMatch();
-                while (currentMath.Success)
-                {
-                    Console.WriteLine(currentMath.Value);
-                    coefficent *= Convert.ToDouble(currentMath.Value);
-                    currentMath = currentMath.NextMatch();
-                }
-                Console.WriteLine("current coefficent is: {0}", coefficent);
+                double coefficent = CaculateCoefficent(temp);
                 currentExpression = currentExpression.Replace(temp, coefficent.ToString() + "x");
-                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
 
                 match = match.NextMatch();
 
             }
             #endregion
 
-
-
-
             return currentExpression;
 
         }
-         
+        private static double CaculateCoefficent(string expresion)
+        {
+            double coefficent = 1;
+            Match currentMath = Regex.Match(expresion, @"(\d)+", RegexOptions.IgnoreCase);
+            if (currentMath.Success)
+            {
+                Console.WriteLine(currentMath.Value);
+                coefficent *= Convert.ToDouble(currentMath.Value);
+            }
+            currentMath = currentMath.NextMatch();
+            while (currentMath.Success)
+            {
+                Console.WriteLine(currentMath.Value);
+                coefficent *= Convert.ToDouble(currentMath.Value);
+                currentMath = currentMath.NextMatch();
+            }
+
+            return coefficent;
+        }
+
         // Change A*X => AX; change 5 * 2 =>10;      AX + b
         public static List<string> StandardizeExpression(List<string> expressions)
         {
@@ -401,7 +364,7 @@ namespace Caculator
                 if(expressionArray[i].ToLower().Contains("x^2"))
                 {
                     double ia = 0;
-                    int index = expressionArray[i].IndexOf("x^2");
+                    int index = expressionArray[i].IndexOf("x^2", StringComparison.CurrentCulture);
                     if(index == 0 )
                     {
                         ia = 1;
@@ -425,7 +388,7 @@ namespace Caculator
                 if (expressionArray[i].ToLower().Contains("x") && !expressionArray[i].ToLower().Contains("x^2"))
                 {
                     double ib = 0;
-                    int index = expressionArray[i].IndexOf("x");
+                    int index = expressionArray[i].IndexOf("x", StringComparison.CurrentCulture);
                     if (index == 0)
                     {
                         ib = 1;
@@ -448,6 +411,7 @@ namespace Caculator
                 //Caculate C
                 if (!expressionArray[i].ToLower().Contains("x") &&
                     !expressionArray[i].Contains("+") &&
+                    !expressionArray[i].Contains("-") &&
                     !expressionArray[i].Contains("-") &&
                     !expressionArray[i].Contains("*") &&
                     !expressionArray[i].Contains("/") &&
@@ -584,11 +548,8 @@ namespace Caculator
             {
                 string expression = ValidateExpression();
                 expression = ProcessBrackets(expression);
-
-
-
-
                 string linearOrQuatratic = LinearOrQuatratic(expression);
+
                 // split expression by =
                 string[] expressions = expression.Split('=');
 
@@ -638,18 +599,8 @@ namespace Caculator
 
                 }
 
-                  
-                
 
             }
-
-
-            /*
-             ax^2 + bx + c = 0
-             int d = b * b - ( 4 * a * c)
-             int x1 = ((b * -1) + sqrt(d)) / (2 * a);
-             int x2 = ((b * -1) - sqrt(d)) /  (2 * a);
-             */
 
 
         }
