@@ -76,6 +76,25 @@ namespace Caculator
             return linearOrQuatratic;
         }
 
+        private static double MatchCoefficent(string mathString)
+        {
+            string pattern = @"(\d)+(\s)*\(";
+            double coefficent = 1;
+            Match currentMath = Regex.Match(mathString, pattern, RegexOptions.IgnoreCase);
+            if (currentMath.Success)
+            {
+                Match currentCoefficent = Regex.Match(currentMath.Value, @"(\d)+", RegexOptions.IgnoreCase);
+                if (currentCoefficent.Success)
+                {
+                    coefficent *= Convert.ToDouble(currentCoefficent.Value);
+                }
+            }
+#if DEBUG
+            Console.WriteLine(coefficent);
+#endif
+            return coefficent;
+        }
+
         //this pattern (X-2) (X-3) = 0
         private static string ProcessBrackets(string expression)
         {
@@ -87,12 +106,40 @@ namespace Caculator
             {
             }
 
+            #region match  2(X-1) + 8 = = 0            Match matchA = Regex.Match(expression, @"((\d)*(\s)*\(((\d*)x)+(\s)*(-|\+)(\s)*\d*\)+)", RegexOptions.IgnoreCase);
+            if (matchA.Success)
+            {
+                string temp = matchA.Value;
+                Console.WriteLine(temp);
+
+                double coefficent = MatchCoefficent(temp);
+
+                //????????????????????????????????????????????? (x-1)
+                Match matchInnerBracketExpression = Regex.Match(temp, @"(\(((\d*)x)+(\s)*(-|\+)(\s)*\d*\))", RegexOptions.IgnoreCase);
+                if (matchInnerBracketExpression.Success)
+                {
+                    Console.WriteLine(matchInnerBracketExpression.Value);
+                }
+            }
+            matchA = matchA.NextMatch();
+            while (matchA.Success)
+            {
+                // same as up
+                string temp = matchA.Value;
+                Console.WriteLine(temp);
+
+                MatchCoefficent(temp);
+
+                matchA = matchA.NextMatch();
+            }
+            #endregion
+
             #region match  4(4X) + 2 (X) = 72
             Match match = Regex.Match(expression, @"((\d)*(\s)*\(((\d*)x)+\))", RegexOptions.IgnoreCase);
             if (match.Success)
             {
                 string temp = match.Value;
-                Console.WriteLine(match.Value);
+                Console.WriteLine(temp);
 
                 double coefficent = 1;
                 Match currentMath = Regex.Match(temp, @"(\d)+", RegexOptions.IgnoreCase);
@@ -118,7 +165,7 @@ namespace Caculator
             while (match.Success)
             {
                 string temp = match.Value;
-                Console.WriteLine(match.Value);
+                Console.WriteLine(temp);
 
                 double coefficent = 1;
                 Match currentMath = Regex.Match(temp, @"(\d)+", RegexOptions.IgnoreCase);
