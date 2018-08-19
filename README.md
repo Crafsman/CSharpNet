@@ -10,4 +10,4 @@ In the command line, the argument is entered as the the "calc" keyword followed 
 calc <equation formula>
 Hitting the enter key will cause the programm to evaluate the arguments and print the reauslt as onre or more numbers separated by ",":
 
-x=<result>,<result>.
+x = <result>, <result>.
