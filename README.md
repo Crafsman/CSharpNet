@@ -11,11 +11,11 @@ Hitting the enter key will cause the programm to evaluate the arguments and prin
 
 x = `<result>, <result>`.
 
-`calc X + 2 = 6`           <br>`x = 4`<br>
-`calc 3X - 6 = 9`          <br>`x = 5`<br>
-`calc X = 5*X - 5 * 3`     <br>`x = 3.75`<br>
-`calc 5(2) + 5x = 15`      <br>`x = 1`<br>
-`calc X / 5 = 6`           <br>`x = 30`<br>
-`calc (x-2) = 0`           <br>`x = 2`<br>
-`calc 2x + 8 = 4x - 20`    <br>`x = 14`<br>
-`calc 4(4x) + 2(x) = 72`   <br>`x = 4`<br>
+`calc X + 2 = 6`           <br> `x = 4`<br>
+`calc 3X - 6 = 9`          <br> `x = 5`<br>
+`calc X = 5*X - 5 * 3`     <br> `x = 3.75`<br>
+`calc 5(2) + 5x = 15`      <br> `x = 1`<br>
+`calc X / 5 = 6`           <br> `x = 30`<br>
+`calc (x-2) = 0`           <br> `x = 2`<br>
+`calc 2x + 8 = 4x - 20`    <br> `x = 14`<br>
+`calc 4(4x) + 2(x) = 72`   <br> `x = 4`<br>
