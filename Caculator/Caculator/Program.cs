@@ -19,17 +19,31 @@ namespace Caculator
 
                 index = expression.IndexOf("calc ", StringComparison.CurrentCulture);
 
+                //remove "cal "
+                if (index == 0)
+                {
+                    expression = expression.Remove(0, 5);
+                   
+                }
+                // Start with calc
                 if (index != 0)
                 {
                     Console.WriteLine("Please begin with \"calc \"");
                     continue;
                 }
-                //remove "cal "
-                if (index == 0)
+                // Check if there is x variable
+                if(!Regex.IsMatch(expression, @"[A-Za-z]+"))
                 {
-                    expression = expression.Remove(0, 5);
-                    break;
+                    Console.WriteLine("Please input a valid variable, please input again: ");
+                    continue;
                 }
+                // no '='
+                if (!Regex.IsMatch(expression, @"="))
+                {
+                    Console.WriteLine("not a equation, please input again: ");
+                    continue;
+                }
+                break;
 
             }
 
@@ -70,7 +84,7 @@ namespace Caculator
         {
             string currentExpression = expression;
 
-            #region match  2(X-1) + 8 = = 0            Match matchA = Regex.Match(expression, @"((\d)*(\s)*\(((\d*)x)+(\s)*(-|\+)(\s)*\d*\)+)", RegexOptions.IgnoreCase);
+            #region match  2(X-1) + 8 = 0            Match matchA = Regex.Match(expression, @"((\d)*(\s)*\(((\d*)x)+(\s)*(-|\+)(\s)*\d*\)+)", RegexOptions.IgnoreCase);
             if (matchA.Success)
             {
                 string temp = matchA.Value;
@@ -263,47 +277,44 @@ namespace Caculator
         // Remove '*' symble, for example: Change "A*X" to "AX" and calc "5 * 2" to 10
         public static List<string> StandardizeExpression(List<string> expressions)
         {
-            //List<string> expressions = rawExpressions;
+            // Handle '*'
             for (int i = 0; i < expressions.Count; i++)
             {
-                if (!expressions[i].ToLower().Contains("x^2"))
+                //Change "A*X" to "AX"
+                if (expressions[i].ToLower().Contains("x"))
                 {
-                    if (expressions[i].ToLower().Contains("x"))
+                    if (expressions[i].Contains("*"))
                     {
-                        if (expressions[i].Contains("*"))
-                        {
-                            expressions[i] = expressions[i].Replace("*", "");
-                        }
-                    }
-                    else  // convert number
-                    {
-                        // Parse 6 * 2 => 12
-                        if (expressions[i].Contains("*") && !expressions[i + 1].ToLower().Contains("x"))
-                        {
-                            double newValue = Convert.ToDouble(expressions[i - 1]) * Convert.ToDouble(expressions[i + 1]);
-                            expressions[i] = expressions[i].Replace("*", newValue.ToString());
-                            expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
-                            expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
-
-                        }
-                        //Parse patern 7 * x => 7x "" ""
-                        else if (expressions[i].Contains("*") && expressions[i + 1].ToLower().Contains("x"))
-                        {
-                            expressions[i - 1] = expressions[i - 1] + "x";
-                            expressions[i] = expressions[i].Replace("*", "");
-                            expressions[i+ 1] = expressions[i + 1].Replace(expressions[i + 1], "");
-                        }
-                        //Parse patern 5(2) + 5X = 15
-                        else if (expressions[i].Contains("(") && expressions[i].Contains(")"))
-                        {
-                            int index = expressions[i].IndexOf('(');
-                            double beforeNumber = Convert.ToDouble(expressions[i].Substring(index - 1, 1));
-                            double behindNumber = Convert.ToDouble(expressions[i].Substring(index + 1, 1));
-                            expressions[i] = (beforeNumber * behindNumber).ToString();
-                        }
+                        expressions[i] = expressions[i].Replace("*", "");
                     }
                 }
-             
+                else  // convert "5 * 2" to 10
+                {
+                    // Parse 6 * 2 => 12
+                    if (expressions[i].Contains("*") && !expressions[i + 1].ToLower().Contains("x"))
+                    {
+                        double newValue = Convert.ToDouble(expressions[i - 1]) * Convert.ToDouble(expressions[i + 1]);
+                        expressions[i] = expressions[i].Replace("*", newValue.ToString());
+                        expressions[i - 1] = expressions[i - 1].Replace(expressions[i - 1], "");
+                        expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+
+                    }
+                    //Parse patern 7 * x => 7x "" ""
+                    else if (expressions[i].Contains("*") && expressions[i + 1].ToLower().Contains("x"))
+                    {
+                        expressions[i - 1] = expressions[i - 1] + "x";
+                        expressions[i] = expressions[i].Replace("*", "");
+                        expressions[i+ 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+                    }
+                    //Parse patern 5(2) + 5X = 15
+                    else if (expressions[i].Contains("(") && expressions[i].Contains(")"))
+                    {
+                        int index = expressions[i].IndexOf('(');
+                        double beforeNumber = Convert.ToDouble(expressions[i].Substring(index - 1, 1));
+                        double behindNumber = Convert.ToDouble(expressions[i].Substring(index + 1, 1));
+                        expressions[i] = (beforeNumber * behindNumber).ToString();
+                    }
+                }                     
                
             }
 
@@ -312,20 +323,38 @@ namespace Caculator
             {
                 if (expressions[i].Contains("/"))
                 {
-                    double denominator = Convert.ToDouble(expressions[i + 1]);
+                    // 1. there is 'x' before '/', such as  9x / 3 = 9
+                    if(expressions[i - 1].ToLower().Contains("x"))
+                    {
+                        double coefficient = withdrawCoefficent(expressions[i - 1]);
+                        double denominator = Convert.ToDouble(expressions[i + 1]);
 
-                    if (Math.Abs(denominator) < Double.Epsilon)
-                    {                      
-                        throw new System.DivideByZeroException();
+                        if (Math.Abs(denominator) < Double.Epsilon)
+                        {
+                            throw new System.DivideByZeroException();
+                        }
+                        double newCoefficient = coefficient / denominator;
+                        expressions[i] = expressions[i].Replace(expressions[i], "");
+                        expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+                        expressions[i - 1] = newCoefficient.ToString() + "x";
+                    }// 2. no 'x' before '/', such as 6 / 3 ; 10 marks
+                    else if(Regex.IsMatch(expressions[i - 1], @"^\d+$") && Regex.IsMatch(expressions[i + 1], @"^\d+$"))
+                    {                   
+                             
+                        double newValue = Convert.ToDouble(expressions[i - 1]) / Convert.ToDouble(expressions[i + 1]);
+                        expressions[i] = expressions[i].Replace(expressions[i], "");
+                        expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
+                        expressions[i - 1] = newValue.ToString();
 
+
+                    }//3. 24 = 6x / 2x
+                    else if (Regex.IsMatch(expressions[i - 1], @"^\d+x$") && Regex.IsMatch(expressions[i + 1], @"^\d+x$"))
+                    {
+                        int a = 0;
                     }
-                    
-                    double newCoefficient = 1 / denominator;
-                    expressions[i] = expressions[i].Replace(expressions[i], "");
-                    expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
-                    expressions[i - 1] = newCoefficient.ToString() + expressions[i - 1];
                 }
             }
+
 
 
             //get rid of "" in expressions
@@ -341,6 +370,23 @@ namespace Caculator
             return outputStandardExpression;
         }
 
+        private static double withdrawCoefficent(string expression)
+        {
+            double coefficient = 1;
+            if(expression.ToLower().Contains("x"))
+            {
+                if (expression.Length == 1)
+                {
+                    coefficient = 1;
+                }
+                else
+                {
+                    string aCoefficient = expression.Substring(0, expression.Length - 1);
+                    coefficient = Convert.ToDouble(aCoefficient);
+                }
+            }
+            return coefficient;
+        }
 
         private static double[] CaculateStandardExpressionCoefficent(List<string> expressionArray)
         {
@@ -380,10 +426,10 @@ namespace Caculator
                 if (expressionArray[i].ToLower().Contains("x"))
                 {
                     string ax = expressionArray[i];
-                    if (ax.Contains("*")) //This will be deleted later, because it has been process in standarlized function
-                    {
-                        ax = expressionArray[i].Replace("*", "");
-                    }
+                    //if (ax.Contains("*")) //This will be deleted later, because it has been process in standarlized function
+                    //{
+                    //    ax = expressionArray[i].Replace("*", "");
+                    //}
                     // 
                     if (ax.Length == 1)
                     {
@@ -469,16 +515,20 @@ namespace Caculator
                         throw new System.DivideByZeroException();
                     }
 
-                    Console.WriteLine("{0} = {1}", globalVariable, -bCoefficients / aCoefficients);
+                    Console.WriteLine("{0} = {1}", globalVariable, (-bCoefficients / aCoefficients));
 
+                }
+                catch(ArgumentOutOfRangeException)
+                {
+                    Console.WriteLine("Argument Out Of Range, please input again: ");
                 }
                 catch(IndexOutOfRangeException)
                 {
-                    Console.WriteLine("Index out of range");
+                    Console.WriteLine("Index out of range, please input again: ");
                 }
                 catch(DivideByZeroException)
                 {
-                    Console.WriteLine("Denominator cannot be 0");
+                    Console.WriteLine("Denominator cannot be 0, please input again: ");
                 }
                 catch (Exception e)
                 {

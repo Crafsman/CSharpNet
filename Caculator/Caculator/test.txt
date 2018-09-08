@@ -12,6 +12,8 @@ calc z = -6 + 3          x = 3
 10 marks
 calc 24 = 6x / 8         x = 32
 calc 6 / 3 = 5 + 3x      x = -1
+calc 6 + 10 / 2 = x      x = 11
 
 exchange alpha to x
 divison by zero errors
+no x variable or = sign is present
