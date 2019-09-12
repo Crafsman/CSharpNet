@@ -2,31 +2,98 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+/*
+steps:
+1. validate expressions
+2. splict the equation by '='
+3. handle left expression, get the left coefficients
+4. handle right expression, get the right coefficients
+5. put the right coefficients to left
+6. use formula x = -b / a         (ax + b = 0)
+*/
 namespace Caculator
 {
     class MainClass
     {
         static char globalVariable;
+        static string[] operators = new string[]{"+", "-", "*", "/"};
 
+        public static void Main(string[] args)
+        {
+            while (true)
+            {
+                Console.WriteLine("Please input linear equation:");
+
+                try
+                {
+                    string expression = ValidateExpression();
+                    expression = RemoveBrackets(expression);
+
+                    // split expression by =
+                    string[] expressions = expression.Split('=');
+
+                    // Left expression
+                    string[] leftExpressions = expressions[0].Trim().Split(' ');
+                    List<string> leftExpressionsList = new List<string>(leftExpressions);
+                    List<string> standardLeftExpression = StandardizeExpression(leftExpressionsList);
+
+                    // Right expression
+                    string[] rightExpressions = expressions[1].Trim().Split(' ');
+                    List<string> rightExpressionsList = new List<string>(rightExpressions);
+                    List<string> standardRightExpression = StandardizeExpression(rightExpressionsList);
+
+                    double[] leftCoefficients = CaculateStandardExpressionCoefficent(standardLeftExpression);
+                    double[] rightCoefficients = CaculateStandardExpressionCoefficent(standardRightExpression);
+
+                    double aCoefficients = leftCoefficients[0] - rightCoefficients[0];
+                    double bCoefficients = leftCoefficients[1] - rightCoefficients[1];
+
+                    if (Math.Abs(aCoefficients) < Double.Epsilon)
+                    {
+                        throw new System.DivideByZeroException();
+                    }
+
+                    Console.WriteLine("{0} = {1}", globalVariable, (-bCoefficients / aCoefficients));
+
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Console.WriteLine("Argument Out Of Range, please input again: ");
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    Console.WriteLine("Index out of range, please input again: ");
+                }
+                catch (DivideByZeroException)
+                {
+                    Console.WriteLine("Denominator cannot be 0, please input again: ");
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("You shuold use \"withe space\" to split operators and numbers. \n For example: calc X + 2 = 6 ");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
+            }
+
+        }
         //Validate expression input pattern, and remove "cal "
         public static string ValidateExpression()
         {
-            int index = -1;
+          
             string expression = "";
             while (true)
             {
                 expression = Console.ReadLine();
 
-                index = expression.IndexOf("calc ", StringComparison.CurrentCulture);
-
-                //remove "cal "
-                if (index == 0)
+                if (Regex.IsMatch(expression, @"^calc "))
                 {
                     expression = expression.Remove(0, 5);
-                   
                 }
-                // Start with calc
-                if (index != 0)
+                else
                 {
                     Console.WriteLine("Please begin with \"calc \"");
                     continue;
@@ -44,7 +111,6 @@ namespace Caculator
                     continue;
                 }
                 break;
-
             }
 
             // Change any variable to x, for example 'z + 4 = 0' => 'x + 4 = 0' 
@@ -60,6 +126,7 @@ namespace Caculator
             return expression;
         }
 
+
         private static double MatchCoefficent(string mathString)
         {
             string pattern = @"(\d)+(\s)*\(";
@@ -73,9 +140,6 @@ namespace Caculator
                     coefficent *= Convert.ToDouble(currentCoefficent.Value);
                 }
             }
-#if DEBUG
-            Console.WriteLine(coefficent);
-#endif
             return coefficent;
         }
 
@@ -88,10 +152,6 @@ namespace Caculator
             if (matchA.Success)
             {
                 string temp = matchA.Value;
-#if DEBUG
-                Console.WriteLine(temp);
-#endif
-
                 string replaceString = "";
                 double coefficent = MatchCoefficent(temp);
                 double xEfficent = 1;
@@ -102,10 +162,6 @@ namespace Caculator
                 if (matchInnerBracketExpression.Success)//x-1
                 {               
                     string innerBracketExpression = matchInnerBracketExpression.Value;
-
-#if DEBUG
-                    Console.WriteLine(innerBracketExpression);
-#endif
                     int index = innerBracketExpression.IndexOf("x", StringComparison.CurrentCultureIgnoreCase);
                     if(index == 0)
                     {
@@ -125,10 +181,6 @@ namespace Caculator
                         if (matchNumber.Success)
                         {
                             number = Convert.ToDouble(matchNumber.Value);
-                             
-#if DEBUG
-                            Console.WriteLine(matchNumber.Value);
-#endif
                         }
                     }
                     number *= coefficent;
@@ -141,17 +193,9 @@ namespace Caculator
                     {
                         replaceString += " + " + number.ToString();
                     }
-
-
-#if DEBUG
-                    Console.WriteLine(replaceString);
-#endif
                 }
 
                 currentExpression = currentExpression.Replace(temp, replaceString);
-#if DEBUG
-                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
-#endif
 
             }
 
@@ -160,23 +204,16 @@ namespace Caculator
             {
                 // same as above
                 string temp = matchA.Value;
-#if DEBUG
-                Console.WriteLine(temp);
-#endif
 
                 string replaceString = "";
                 double coefficent = MatchCoefficent(temp);
                 double xEfficent = 1;
                 double number = 0;
 
-                //????????????????????????????????????????????? (x-1)
                 Match matchInnerBracketExpression = Regex.Match(temp, @"((\d*)x)+(\s)*(-|\+)(\s)*\d*", RegexOptions.IgnoreCase);
                 if (matchInnerBracketExpression.Success)//x-1
                 {
                     string innerBracketExpression = matchInnerBracketExpression.Value;
-#if DEBUG
-                    Console.WriteLine(innerBracketExpression);
-#endif
                     int index = innerBracketExpression.IndexOf("x", StringComparison.CurrentCultureIgnoreCase);
                     if (index == 0)
                     {
@@ -198,10 +235,6 @@ namespace Caculator
                         if (matchNumber.Success)
                         {
                             number = Convert.ToDouble(matchNumber.Value);
-
-#if DEBUG
-                            Console.WriteLine(matchNumber.Value);
-#endif
                         }
                     }
                     number *= coefficent;
@@ -214,16 +247,9 @@ namespace Caculator
                     {
                         replaceString += " + " + number.ToString();
                     }
-
-                   
-#if DEBUG
-                    Console.WriteLine(replaceString);
-#endif
+               
                 }
                 currentExpression = currentExpression.Replace(temp, replaceString);
-#if DEBUG
-                Console.WriteLine("currentExpression change to: {0} ", currentExpression);
-#endif
                 matchA = matchA.NextMatch();
             }
             #endregion
@@ -235,7 +261,6 @@ namespace Caculator
                 string temp = match.Value;
                 double coefficent = CaculateCoefficent(temp);
                 currentExpression = currentExpression.Replace(temp, coefficent.ToString() + "x");
-
             }
 
             match = match.NextMatch();
@@ -246,12 +271,10 @@ namespace Caculator
                 currentExpression = currentExpression.Replace(temp, coefficent.ToString() + "x");
 
                 match = match.NextMatch();
-
             }
             #endregion
 
             return currentExpression;
-
         }
 
         private static double CaculateCoefficent(string expresion)
@@ -260,13 +283,11 @@ namespace Caculator
             Match currentMath = Regex.Match(expresion, @"(\d)+", RegexOptions.IgnoreCase);
             if (currentMath.Success)
             {
-                Console.WriteLine(currentMath.Value);
                 coefficent *= Convert.ToDouble(currentMath.Value);
             }
             currentMath = currentMath.NextMatch();
             while (currentMath.Success)
             {
-                Console.WriteLine(currentMath.Value);
                 coefficent *= Convert.ToDouble(currentMath.Value);
                 currentMath = currentMath.NextMatch();
             }
@@ -274,9 +295,34 @@ namespace Caculator
             return coefficent;
         }
 
+        public static bool IsOperator(string expression)
+        {
+            foreach(var operate in operators)
+            {
+                if (expression.Equals(operate))
+                    return true;
+            }
+            return false;
+        }
+
+        // Recursive function. Resolving multiple concurrent operators. e.g.X = 3 - - - 8X - 4
+        public static void ResolveMultipleConcurrentOperators(ref List<string> expressions)
+        {
+            for (int i = 0; i < expressions.Count; i++)
+            {
+                if (IsOperator(expressions[i]) && IsOperator(expressions[i + 1]))
+                {
+                    expressions.Remove(expressions[i]);
+                    ResolveMultipleConcurrentOperators(ref expressions);
+                }
+            }
+        }
+
         // Remove '*' symble, for example: Change "A*X" to "AX" and calc "5 * 2" to 10
         public static List<string> StandardizeExpression(List<string> expressions)
         {
+            ResolveMultipleConcurrentOperators(ref expressions);
+
             // Handle '*'
             for (int i = 0; i < expressions.Count; i++)
             {
@@ -339,23 +385,15 @@ namespace Caculator
                         expressions[i - 1] = newCoefficient.ToString() + "x";
                     }// 2. no 'x' before '/', such as 6 / 3 ; 10 marks
                     else if(Regex.IsMatch(expressions[i - 1], @"^\d+$") && Regex.IsMatch(expressions[i + 1], @"^\d+$"))
-                    {                   
-                             
+                    {                  
                         double newValue = Convert.ToDouble(expressions[i - 1]) / Convert.ToDouble(expressions[i + 1]);
                         expressions[i] = expressions[i].Replace(expressions[i], "");
                         expressions[i + 1] = expressions[i + 1].Replace(expressions[i + 1], "");
                         expressions[i - 1] = newValue.ToString();
 
-
-                    }//3. 24 = 6x / 2x
-                    else if (Regex.IsMatch(expressions[i - 1], @"^\d+x$") && Regex.IsMatch(expressions[i + 1], @"^\d+x$"))
-                    {
-                        int a = 0;
                     }
                 }
             }
-
-
 
             //get rid of "" in expressions
             List<string> outputStandardExpression = new List<string>();
@@ -397,11 +435,7 @@ namespace Caculator
             for (int i = 0; i < expressionArray.Count; i++)
             {
                 //Caculate C
-                if (!expressionArray[i].ToLower().Contains("x") &&
-                    !expressionArray[i].Contains("+") &&
-                    !expressionArray[i].Contains("-") &&
-                    !expressionArray[i].Contains("*") &&
-                    !expressionArray[i].Contains("/"))
+                if (!expressionArray[i].ToLower().Contains("x") && !IsOperator(expressionArray[i]))
                 {
                     double number = Convert.ToDouble(expressionArray[i]);
                     if (i == 0)
@@ -426,11 +460,7 @@ namespace Caculator
                 if (expressionArray[i].ToLower().Contains("x"))
                 {
                     string ax = expressionArray[i];
-                    //if (ax.Contains("*")) //This will be deleted later, because it has been process in standarlized function
-                    //{
-                    //    ax = expressionArray[i].Replace("*", "");
-                    //}
-                    // 
+
                     if (ax.Length == 1)
                     {
                         //a=1
@@ -444,8 +474,13 @@ namespace Caculator
                             if (opera == "-")
                             {
                                 A -= 1;
+                            }else if(opera == "+")
+                            {
+                                A += 1;
                             }
+
                         }
+
                     }// ax not at the begining
                     else
                     {
@@ -472,74 +507,12 @@ namespace Caculator
                 }
 
             }
-
-#if DEBUG
-            Console.WriteLine("A {0}", A);
-            Console.WriteLine("B {0}", B);
-#endif
             AB[0] = A;
             AB[1] = B; 
             return AB;
         }
 
-        public static void Main(string[] args)
-        {
-            while(true)
-            {
-                try
-                {
-                    string expression = ValidateExpression();
-                    expression = RemoveBrackets(expression);
 
-                    // split expression by =
-                    string[] expressions = expression.Split('=');
-
-                    // Left expression
-                    string[] leftExpressions = expressions[0].Trim().Split(' ');
-                    List<string> leftExpressionsList = new List<string>(leftExpressions);
-                    List<string> standardLeftExpression = StandardizeExpression(leftExpressionsList);
-
-                    // Right expression
-                    string[] rightExpressions = expressions[1].Trim().Split(' ');
-                    List<string> rightExpressionsList = new List<string>(rightExpressions);
-                    List<string> standardRightExpression = StandardizeExpression(rightExpressionsList);
-
-                    double[] leftCoefficients = CaculateStandardExpressionCoefficent(standardLeftExpression);
-                    double[] rightCoefficients = CaculateStandardExpressionCoefficent(standardRightExpression);
-
-                    double aCoefficients = leftCoefficients[0] - rightCoefficients[0];
-                    double bCoefficients = leftCoefficients[1] - rightCoefficients[1];
-
-                    if (Math.Abs(aCoefficients) < Double.Epsilon)
-                    {
-                        throw new System.DivideByZeroException();
-                    }
-
-                    Console.WriteLine("{0} = {1}", globalVariable, (-bCoefficients / aCoefficients));
-
-                }
-                catch(ArgumentOutOfRangeException)
-                {
-                    Console.WriteLine("Argument Out Of Range, please input again: ");
-                }
-                catch(IndexOutOfRangeException)
-                {
-                    Console.WriteLine("Index out of range, please input again: ");
-                }
-                catch(DivideByZeroException)
-                {
-                    Console.WriteLine("Denominator cannot be 0, please input again: ");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-  
-
-            }
-
-
-        }
 
 
     }

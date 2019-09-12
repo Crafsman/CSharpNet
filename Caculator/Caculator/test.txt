@@ -1,19 +1,40 @@
 ﻿calc X + 2 = 6           x = 4
-calc 3X - 6 = 9          x = 5
+calc 3*X - 6 = 9          x = 5
 calc 3z - 6 = 9          z = 5
 calc X = 5*X - 5 * 3     x = 3.75calc 5(2) + 5x = 15      x = 1calc X / 5 = 6           x = 30
 calc (x-2) = 0           x = 2
-calc 2x + 8 = 4x - 20    x = 14calc 4(4x) + 2(x) = 72   x = 4
+calc 2x + 8 = 4x - 20    x = 14
+calc 4(4x) + 2(x) = 72   x = 4
 
 7 marks
 calc x = 5 + 22 * 3      x = 71
-calc z = -6 + 3          x = 3
+calc z = -6 + 3          x = -3
 
 10 marks
 calc 24 = 6x / 8         x = 32
 calc 6 / 3 = 5 + 3x      x = -1
 calc 6 + 10 / 2 = x      x = 11
 
+16 makrs
+calc z = 14 - - - - 8z + 4  x = 2     calc X = 3 - 8X - 4
+resolviing multiple concurrent operators
+calc 4 = 2(x - 3)       x = 5
+
 exchange alpha to x
 divison by zero errors
 no x variable or = sign is present
+
+// probem one 
+calc 4 + x = 7
+
+ax + b = 0
+x = -b / a
+
+
+steps:
+1. validate expressions
+2. splict the equation by '='
+3. handle left expression, get the left coefficients
+4. handle right expression, get the right coefficients
+5. put the right coefficients to left
+6. use formula x = -b / a . (ax + b = 0)
